@@ -1,3 +1,7 @@
+CREATE USER 'diego'@'%' identified by 'mysqlpassword';
+grant all privileges on *.* to 'diego'@'%' with grant option;
+flush privileges;
+
 CREATE DATABASE IF NOT EXISTS inviewer;
 USE inviewer;
 
