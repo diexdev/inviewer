@@ -1,0 +1,45 @@
+services:
+  db:
+    image: mysql:8.0
+    volumes:
+      - ./db_inviewer/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db_data:/var/lib/mysql
+    environment:
+      # Las variables de entorno de MySQL se configuran aquí.
+      # Asegúrate de definir ${PASSWORD} y ${DATABASE} en un archivo .env en la raíz del proyecto.
+      # ¡Sintaxis corregida: sin los guiones para cada variable!
+      MYSQL_ROOT_PASSWORD: ${PASSWORD}
+      MYSQL_DATABASE: ${DATABASE}
+    healthcheck:
+      # Verifica la salud de la base de datos para asegurar que esté lista.
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  backend:
+    build: ./typeBackend # Busca el Dockerfile en la carpeta 'typeBackend'
+    ports:
+      - "4000:3000" # Mapea el puerto 4000 del host al 3000 del contenedor (donde escucha tu backend)
+    env_file: ./typeBackend/.env # Carga variables de entorno específicas para el backend desde './backend/.env'
+    depends_on:
+      db:
+        condition: service_healthy # Asegura que la DB esté saludable antes de iniciar el backend
+
+  frontend:
+    build:
+      context: ./inViewerFront # Busca el Dockerfile en la carpeta 'inViewerFront'
+      args:
+        # Importante para React/Vite: pasa la URL del API durante la fase de construcción.
+        # En tu Dockerfile del frontend (etapa 'builder'), deberás tener un 'ARG VITE_API_URL'.
+        # Asegúrate de que tu código React use 'import.meta.env.VITE_API_URL'.
+        VITE_API_URL: http://backend:3000
+    ports:
+      - "3000:80" # Mapea el puerto 3000 del host al 80 del contenedor (donde Nginx sirve tu frontend)
+    depends_on:
+      - backend # El frontend depende de que el backend esté disponible
+
+volumes:
+  db_data: # Volumen persistente para los datos de la base de datos
+  # Opcional: Descomenta si deseas un volumen para cachear 'node_modules' del backend,
+  # lo cual puede acelerar las reconstrucciones en desarrollo si las dependencias cambian.
+  # backend_node_modules:

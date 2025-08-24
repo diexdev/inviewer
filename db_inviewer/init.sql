@@ -10,7 +10,7 @@ CREATE TABLE users (
     name VARCHAR(30),
     email VARCHAR(100) NOT NULL UNIQUE,
     username VARCHAR(15) NOT NULL UNIQUE,
-    password VARCHAR(15) NOT NULL,
+    password VARCHAR(100) NOT NULL,
     birthdate DATE NOT NULL
 );
 
