@@ -1,23 +1,33 @@
-FROM node:18-alpine as builder
+# Etapa 1: Construcción (Builder)
+# Ahora usamos la imagen de Node.js versión 20
+FROM node:22-alpine as builder
+# Define el directorio de trabajo
+WORKDIR /usr/src/app
 
-WORKDIR /app
+# Copia los archivos de configuración
+COPY package*.json ./
 
-RUN npm install -g pnpm
+# Instala las dependencias de la aplicación
+RUN npm install --legacy-peer-deps
 
-COPY package*.json pnpm-lock.yaml ./
-
-ENV CI=true
-
-RUN pnpm install
-
+# Copia el código fuente
 COPY . .
 
-RUN pnpm run build
+# Compila la aplicación para producción
+RUN npm run build
 
-FROM nginx:alpine
+# Etapa 2: Servir (Nginx)
+# Usa una imagen de NGINX más reciente
+FROM nginx:1.25-alpine
 
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Copia tu configuración de NGINX
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 
+# Copia los archivos de construcción de React a la carpeta de NGINX
+COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
+
+# Expón el puerto 80, que es el puerto por defecto de NGINX
 EXPOSE 80
 
+# Comando para iniciar NGINX
 CMD ["nginx", "-g", "daemon off;"]

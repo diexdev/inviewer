@@ -55,7 +55,7 @@ export function Header () {
     <>
       <header>
         <nav className="header-nav">
-          <img src="../../img.png" className="logo"/>
+          <img src="https://i.imgur.com/zMmz7r6.jpeg" className="logo"/>
           <div className="search-bar">
             <form onSubmit={handleSearch} className="search-form">
               <input value={search} onChange={handleChange} type="text" name="search" placeholder="Web developer, Analist, ..."/>
